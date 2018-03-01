@@ -12,6 +12,7 @@ typedef struct{
 
 Venda *alocarMemoriaVendas(int n);
 int *alocarMemoriaVendedores(int n);
+double *alocarMemoriaDouble(int n);
 
 void cadastrarVendedor(int *vendedores, int n);
 int cadastrarVendedorHelper(int *vendedores, int codigo);
@@ -30,9 +31,11 @@ double calcTotalDeVendas(Venda *vendas, int codigo);
 double calcTotalDeVendasNoMes(Venda *vendas, int codigo, int mes);
 
 void mostrarVendedorQueMaisVendeuNoMes(Venda *vendas, int *vendedores);
-int mostrarVendedorQueMaisVendeuNoMesHelper(Venda *vendas, int *vendedores, int mes);
+double *mostrarVendedorQueMaisVendeuNoMesHelper(Venda *vendas, int *vendedores, int mes);
 
 void mostrarMesComMaiorVenda(Venda *vendas, int *vendedores);
+double *mostrarMesComMaiorVendaHelper(Venda *vendas, int *vendedores);
+int buscarIndexMaiorValor(double *arr, int n);
 
 void mostrarMenu();
 void lerCodigo(int *codigo, int *vendedores);
@@ -43,7 +46,7 @@ int main(){
     do{
         printf("Qual a quantidade de vendedores? ");
         scanf("%d", &n);
-    }while(m <= 0);
+    }while(n <= 0);
 
     int *vendedores = alocarMemoriaVendedores(n);
     m = n * 12;
@@ -80,7 +83,25 @@ int main(){
 }
 
 void mostrarMesComMaiorVenda(Venda *vendas, int *vendedores){
+    double *vendasNoMes = mostrarMesComMaiorVendaHelper(vendas, vendedores);
+    if(vendasNoMes == NULL)
+        return;
+    int indexMax = buscarIndexMaiorValor(vendasNoMes, 12);
+    free(vendasNoMes);
+    printf("O mes que mais vendeu foi: %d\n", indexMax + 1);
+}
 
+double *mostrarMesComMaiorVendaHelper(Venda *vendas, int *vendedores){
+    int i, j;
+    double *vendasNoMes = alocarMemoriaDouble(12);
+    if(vendasNoMes == NULL)
+        return (NULL);
+    for(i = 0; i < 12; i++){
+        vendasNoMes[i] = 0;
+        for(j = 0; j < numVendedoresCadastrados; j++)
+            vendasNoMes[i] += calcTotalDeVendasNoMes(vendas, vendedores[j], i + 1);
+    }
+    return vendasNoMes;
 }
 
 void mostrarVendedorQueMaisVendeuNoMes(Venda *vendas, int *vendedores){
@@ -88,31 +109,39 @@ void mostrarVendedorQueMaisVendeuNoMes(Venda *vendas, int *vendedores){
         return;
     int mes;
     lerMes(&mes);
-
-    int indexMaiorVenda = mostrarVendedorQueMaisVendeuNoMesHelper(vendas, vendedores, mes);
-    printf("\nO vendedor que mais vendeu é: %d", vendedores[indexMaiorVenda]);
+    double *totalVendedores = mostrarVendedorQueMaisVendeuNoMesHelper(vendas, vendedores, mes);
+    if(totalVendedores == NULL)
+        return;
+    int indexMaiorVenda = buscarIndexMaiorValor(totalVendedores, numVendedoresCadastrados);
+    free(totalVendedores);
+    printf("\nO vendedor que mais vendeu e: %d\n", vendedores[indexMaiorVenda]);
 }
 
-int mostrarVendedorQueMaisVendeuNoMesHelper(Venda *vendas, int *vendedores, int mes){
-    double *totalVendedores = (double*) calloc(numVendedoresCadastrados, sizeof(double));
+double *mostrarVendedorQueMaisVendeuNoMesHelper(Venda *vendas, int *vendedores, int mes){
+    double *totalVendedores = alocarMemoriaDouble(numVendedoresCadastrados);
+    if(totalVendedores == NULL)
+        return (NULL);
     int i;
     for(i = 0; i < numVendedoresCadastrados; i++){
         totalVendedores[i] = calcTotalDeVendasNoMes(vendas, vendedores[i], mes);
     }
-    int indexMaiorVenda = 0;
-    for(i = 1; i < numVendedoresCadastrados; i++){
-        if(totalVendedores[indexMaiorVenda] < totalVendedores[i])
-            indexMaiorVenda = i;
+    return totalVendedores;
+}
+
+int buscarIndexMaiorValor(double *arr, int n){
+    int i, indexMaior = 0;
+    for(i = 1; i < n; i++){
+        if(arr[indexMaior] < arr[i])
+            indexMaior = i;
     }
-    free(totalVendedores);
-    return indexMaiorVenda;
+    return indexMaior;
 }
 
 void consultarTotalDeVendasDoVendedor(Venda *vendas, int *vendedores){
     int codigo, i;
     lerCodigo(&codigo, vendedores);
 
-    printf("Total das Vendas: %lf", calcTotalDeVendas(vendas, codigo));
+    printf("Total das Vendas: %lf\n", calcTotalDeVendas(vendas, codigo));
 }
 
 double calcTotalDeVendas(Venda *vendas, int codigo){
@@ -196,12 +225,12 @@ int calcVendasNoMes(Venda *vendas, int codigo, int mes){
 void cadastrarVendedor(int *vendedores, int n){
     int max = n - numVendedoresCadastrados;
     if(max == 0){
-        printf("\n****Não é possível salvar mais vendedores****\n");
+        printf("\n****Nao e possivel salvar mais vendedores****\n");
         return;
     }
     int qtd;
     do{
-        printf("\nQuantos vendedores voce irá cadastrar? Podem ser cadastrados %d vendedores\n", max);
+        printf("\nQuantos vendedores voce ira cadastrar? Podem ser cadastrados %d vendedores\n", max);
         scanf("%d", &qtd);
     }while(qtd < 0 && qtd <= max);
 
@@ -232,14 +261,14 @@ int codigojaExiste(int *vendedores, int codigo){
 }
 
 void mostrarMenu(){
-    printf("\n1.Cadastrar Vendedor");
-    printf("\n2.Cadastrar Venda");
-    printf("\n3.Consultar as vendas de um funcionário em determinado mes");
-    printf("\n4.Consultar o numero do vendedor que mais vendeu em um determinado mes");
-    printf("\n5.Mostrar o número do vendedor que mais vendeu em um determinado mes");
-    printf("\n6.Mostrar o número de mês com mais vendas");
-    printf("\n7.Finalizar programa");
-    printf("\nSelecione uma das ações acima: ");
+    printf("\n1.    Cadastrar vendedor");
+    printf("\n2.    Cadastrar venda");
+    printf("\n3.    Consultar as vendas de um funcionario em determinado mes");
+    printf("\n4.    Consultar o total das vendas de determinado vendedor");
+    printf("\n5.    Mostrar o número do vendedor que mais vendeu em um determinado mes");
+    printf("\n6.    Mostrar o número de mês com mais vendas");
+    printf("\n7.    Finalizar programa");
+    printf("\nSelecione uma das acoes acima: ");
 }
 
 Venda *alocarMemoriaVendas(int n){
@@ -264,9 +293,20 @@ int *alocarMemoriaVendedores(int n){
     return vendedores;
 }
 
+double *alocarMemoriaDouble(int n){
+    if(n < 1)
+        return (NULL);
+    double *arr= (double*)calloc(n, sizeof(double));
+    if(arr == NULL){
+        printf("Erro: Memoria insuficiente");
+        return (NULL);
+    }
+    return arr;
+}
+
 void lerMes(int *mes){
    do{
-        printf("\nDigite o mês da venda: ");
+        printf("\nDigite o mes da venda: ");
         scanf("%d", mes);
     }while(*mes < 1 || *mes > 12);
 }
