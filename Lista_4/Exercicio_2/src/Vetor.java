@@ -81,6 +81,11 @@ public class Vetor {
 		for (int i = 0; i < numElementos; i++) {
 			aux[i] = v[i];
 		}
+		this.v = aux;
 		this.tamanho = tamanho;
+	}
+
+	public int getMaxSize() {
+		return this.tamanho;
 	}
 }
