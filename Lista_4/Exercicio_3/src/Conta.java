@@ -4,7 +4,7 @@ public class Conta {
 	private int numero;
 	private double saldo;
 	public Cliente titular;
-	private static final float TAXA = 0.1F;
+	private static final double TAXA = 0.1;
 
 	public Conta(Cliente cliente, int numero) {
 		this.titular = cliente;
@@ -18,9 +18,10 @@ public class Conta {
 	}
 
 	public double saque(double valor) {
-		if (valor > 0 && valor <= this.saldo)
-			this.saldo -= valor;
-		return valor * (1 - TAXA);
+		if (valor > 0 && valor <= this.saldo) {
+			this.saldo -= (valor + (valor * TAXA));
+		}
+		return valor;
 	}
 
 	public double transfere(double valor, Conta destino) {
@@ -31,6 +32,14 @@ public class Conta {
 
 	public double getSaldo() {
 		return this.saldo;
+	}
+
+	public Cliente getTitular() {
+		return this.titular;
+	}
+
+	public int getNumero() {
+		return this.numero;
 	}
 
 }
